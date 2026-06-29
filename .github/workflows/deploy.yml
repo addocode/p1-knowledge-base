@@ -7,20 +7,20 @@ on:
 
 jobs:
   deploy:
-    name: Upload website via SFTP
+    name: Upload website via FTPS
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT }}
-          local_path: './*'
-          remote_path: ${{ secrets.FTP_REMOTE_PATH }}
-          sftp_only: true
+          port: 21
+          protocol: ftps
+          local-dir: ./
+          server-dir: ${{ secrets.FTP_REMOTE_PATH }}
