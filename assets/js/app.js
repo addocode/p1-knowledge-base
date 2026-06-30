@@ -24,12 +24,27 @@ sidebar?.setAttribute('id','siteSidebar');
 menuBtn?.addEventListener('click',()=>sidebar?.classList.contains('open')?closeSidebar():openSidebar());
 q('.sidebar-close')?.addEventListener('click',closeSidebar);
 const panel=q('#searchPanel'), input=q('#globalSearch'), res=q('#searchResults');
-if(panel&&!q('.search-head',panel)){const head=document.createElement('div');head.className='search-head';input?.parentNode?.insertBefore(head,input);if(input)head.appendChild(input);const close=document.createElement('button');close.className='iconbtn search-close';close.id='closeSearch';close.type='button';close.setAttribute('aria-label','Close search');close.textContent='Close';head.appendChild(close);}
-function closeSearch(){panel?.classList.remove('open');q('#openSearch')?.setAttribute('aria-expanded','false');if(!sidebar?.classList.contains('open'))dim?.classList.remove('open');}
-function openSearch(){panel?.classList.add('open');q('#openSearch')?.setAttribute('aria-expanded','true');dim?.classList.add('open'); input?.focus();}
+let searchClose=q('#closeSearch'), searchReturnFocus=null;
+if(panel){
+  panel.setAttribute('role','dialog');
+  panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','Search knowledge base');
+  if(!q('.search-head',panel)){const head=document.createElement('div');head.className='search-head';input?.parentNode?.insertBefore(head,input);if(input)head.appendChild(input);}
+  if(!searchClose){searchClose=document.createElement('button');searchClose.className='search-close';searchClose.id='closeSearch';searchClose.type='button';searchClose.setAttribute('aria-label','Close search');searchClose.textContent='×';panel.after(searchClose);}
+}
+function closeSearch({restoreFocus=true}={}){
+  if(!panel?.classList.contains('open')) return;
+  panel.classList.remove('open');searchClose?.classList.remove('open');q('#openSearch')?.setAttribute('aria-expanded','false');
+  if(!sidebar?.classList.contains('open'))dim?.classList.remove('open');
+  if(restoreFocus&&searchReturnFocus&&document.contains(searchReturnFocus))searchReturnFocus.focus({preventScroll:true});
+}
+function openSearch(e){
+  searchReturnFocus=e?.currentTarget instanceof HTMLElement?e.currentTarget:document.activeElement instanceof HTMLElement?document.activeElement:q('#openSearch');
+  panel?.classList.add('open');searchClose?.classList.add('open');q('#openSearch')?.setAttribute('aria-expanded','true');dim?.classList.add('open'); input?.focus({preventScroll:true});
+}
 q('#openSearch')?.setAttribute('aria-expanded','false');
 q('#openSearch')?.setAttribute('aria-controls','searchPanel');
-q('#openSearch')?.addEventListener('click',openSearch);q('.side-search input')?.addEventListener('click',openSearch);q('#closeSearch')?.addEventListener('click',closeSearch);dim?.addEventListener('click',()=>{closeSearch();closeSidebar();});document.addEventListener('pointerdown',e=>{if(panel?.classList.contains('open')&&!panel.contains(e.target)&&!q('#openSearch')?.contains(e.target)&&!q('.side-search input')?.contains(e.target))closeSearch();});document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()} if(e.key==='Escape'){closeSearch();closeSidebar();}});
+q('#openSearch')?.addEventListener('click',openSearch);q('.side-search input')?.addEventListener('click',openSearch);searchClose?.addEventListener('click',()=>closeSearch());dim?.addEventListener('click',()=>{closeSearch();closeSidebar();});document.addEventListener('pointerdown',e=>{if(panel?.classList.contains('open')&&!panel.contains(e.target)&&!searchClose?.contains(e.target)&&!q('#openSearch')?.contains(e.target)&&!q('.side-search input')?.contains(e.target))closeSearch();});document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch(e)} if(e.key==='Escape'){closeSearch();closeSidebar();}});
 
 function renderSearch(v){v=v.toLowerCase().trim(); res.innerHTML=''; if(!v){res.innerHTML='<div class="result"><a><strong>Type to search</strong><small>Search articles, terms and case studies.</small></a></div>'; return}
 searchItems.filter(p=>(p.title+' '+p.category+' '+p.subtitle).toLowerCase().includes(v)).forEach(p=>{const d=document.createElement('div');d.className='result';d.innerHTML=`<a href="${p.url}"><strong>${p.title}</strong><small>${p.category} · ${p.subtitle}</small></a>`;res.appendChild(d)}); if(!res.innerHTML)res.innerHTML='<div class="result"><a><strong>No results</strong><small>Try another term.</small></a></div>';}
