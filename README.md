@@ -8,3 +8,5 @@ Start with `index.html`. This build uses a calmer documentation style, dark coll
 ## v6.0 Knowledge Edition
 
 First content-focused release: added master articles, expanded Czynsz, added Bare Ownership / Usufrutto, added transaction-actor case studies and integrated v6 navigation/search entries.
+
+Redeploy trigger: 2026-06-30
