@@ -12,10 +12,25 @@ const searchItems=KB_INDEX_RAW.map(p=>({...p,url:pageUrl(p.url)}));
 qa('.nav-head').forEach(btn=>btn.addEventListener('click',()=>{const box=btn.parentElement.querySelector('.nav-items'); box.hidden=!box.hidden; btn.querySelector('span:last-child').textContent=box.hidden?'▸':'⌄';}));
 q('#themeBtn')?.addEventListener('click',()=>{const dark=document.documentElement.dataset.theme==='dark'; document.documentElement.dataset.theme=dark?'':'dark'; localStorage.setItem('p1-theme', dark?'light':'dark')});
 if(localStorage.getItem('p1-theme')==='dark') document.documentElement.dataset.theme='dark';
-q('#menuBtn')?.addEventListener('click',()=>q('.sidebar').classList.toggle('open'));
+const sidebar=q('.sidebar'), menuBtn=q('#menuBtn');
+let dim=q('.app-dim');
+if(!dim){dim=document.createElement('button');dim.className='app-dim';dim.type='button';dim.setAttribute('aria-label','Close overlay');document.body.appendChild(dim);}
+if(sidebar&&!q('.sidebar-close',sidebar)){const close=document.createElement('button');close.className='sidebar-close';close.type='button';close.setAttribute('aria-label','Close navigation');close.textContent='×';sidebar.prepend(close);}
+function closeSidebar(){sidebar?.classList.remove('open');menuBtn?.setAttribute('aria-expanded','false');if(!panel?.classList.contains('open'))dim?.classList.remove('open');}
+function openSidebar(){sidebar?.classList.add('open');menuBtn?.setAttribute('aria-expanded','true');dim?.classList.add('open');}
+menuBtn?.setAttribute('aria-expanded','false');
+menuBtn?.setAttribute('aria-controls','siteSidebar');
+sidebar?.setAttribute('id','siteSidebar');
+menuBtn?.addEventListener('click',()=>sidebar?.classList.contains('open')?closeSidebar():openSidebar());
+q('.sidebar-close')?.addEventListener('click',closeSidebar);
 const panel=q('#searchPanel'), input=q('#globalSearch'), res=q('#searchResults');
-function openSearch(){panel.classList.add('open'); input.focus();}
-q('#openSearch')?.addEventListener('click',openSearch);q('.side-search input')?.addEventListener('click',openSearch);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()} if(e.key==='Escape') panel.classList.remove('open')});
+if(panel&&!q('.search-head',panel)){const head=document.createElement('div');head.className='search-head';input?.parentNode?.insertBefore(head,input);if(input)head.appendChild(input);const close=document.createElement('button');close.className='iconbtn search-close';close.id='closeSearch';close.type='button';close.setAttribute('aria-label','Close search');close.textContent='Close';head.appendChild(close);}
+function closeSearch(){panel?.classList.remove('open');q('#openSearch')?.setAttribute('aria-expanded','false');if(!sidebar?.classList.contains('open'))dim?.classList.remove('open');}
+function openSearch(){panel?.classList.add('open');q('#openSearch')?.setAttribute('aria-expanded','true');dim?.classList.add('open'); input?.focus();}
+q('#openSearch')?.setAttribute('aria-expanded','false');
+q('#openSearch')?.setAttribute('aria-controls','searchPanel');
+q('#openSearch')?.addEventListener('click',openSearch);q('.side-search input')?.addEventListener('click',openSearch);q('#closeSearch')?.addEventListener('click',closeSearch);dim?.addEventListener('click',()=>{closeSearch();closeSidebar();});document.addEventListener('pointerdown',e=>{if(panel?.classList.contains('open')&&!panel.contains(e.target)&&!q('#openSearch')?.contains(e.target)&&!q('.side-search input')?.contains(e.target))closeSearch();});document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()} if(e.key==='Escape'){closeSearch();closeSidebar();}});
+
 function renderSearch(v){v=v.toLowerCase().trim(); res.innerHTML=''; if(!v){res.innerHTML='<div class="result"><a><strong>Type to search</strong><small>Search articles, terms and case studies.</small></a></div>'; return}
 searchItems.filter(p=>(p.title+' '+p.category+' '+p.subtitle).toLowerCase().includes(v)).forEach(p=>{const d=document.createElement('div');d.className='result';d.innerHTML=`<a href="${p.url}"><strong>${p.title}</strong><small>${p.category} · ${p.subtitle}</small></a>`;res.appendChild(d)}); if(!res.innerHTML)res.innerHTML='<div class="result"><a><strong>No results</strong><small>Try another term.</small></a></div>';}
 input?.addEventListener('input',e=>renderSearch(e.target.value)); renderSearch('');
